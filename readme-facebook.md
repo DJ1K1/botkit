@@ -54,6 +54,15 @@ Since Facebook delivers messages via web hook, your application must be availabl
 
 When you are ready to go live, consider [LetsEncrypt.org](http://letsencrypt.org), a _free_ SSL Certificate Signing Authority which can be used to secure your website very quickly. It is fabulous and we love it.
 
+## Validate Requests - Secure your webhook!
+Facebook sends an X-HUB signature header with requests to your webhook. You can verify the requests are coming from Facebook by enabling `validate_requests: true` when creating your bot controller. This checks the sha1 signature of the incoming payload against your Facebook App Secret (which is seperate from your webhook's verify_token), preventing unauthorized access to your webhook. You must also pass your `app_secret` into your environment variables when running your bot.
+
+The Facebook App secret is available on the Overview page of your Facebook App's admin page. Click show to reveal it.
+
+```
+app_secret=abcdefg12345 page_token=123455abcd verify_token=VerIfY-tOkEn node facebook_bot.js
+```
+
 ## Facebook-specific Events
 
 Once connected to Facebook, bots receive a constant stream of events.
@@ -321,6 +330,20 @@ Create a [persistent menu](https://developers.facebook.com/docs/messenger-platfo
 
 Clear the persistent menu setting
 
+#### controller.api.thread_settings.domain_whitelist()
+| Argument | Description
+|---  |---
+| payload | A single or a list of domains to add to the whitelist, All domains must be valid and use https. Up to 10 domains allowed.
+
+#### controller.api.thread_settings.delete_delete_domain_whitelist()
+| Argument | Description
+|---  |---
+| payload | A single or a list of domains to remove from whitelist, All domains must be valid and use https. Up to 10 domains allowed.
+
+#### controller.api.thread_settings.get_domain_whitelist()
+
+Get a list of the whitelisted domains.
+
 #### Using the Thread Settings API
 
 ```js
@@ -343,6 +366,13 @@ controller.api.thread_settings.menu([
       "url":"https://github.com/howdyai/botkit/blob/master/readme-facebook.md"
     },
 ]);
+controller.api.thread_settings.domain_whitelist('https://localhost');
+controller.api.thread_settings.domain_whitelist(['https://127.0.0.1', 'https://0.0.0.0']);
+controller.api.thread_settings.delete_domain_whitelist('https://localhost');
+controller.api.thread_settings.delete_domain_whitelist(['https://127.0.0.1', 'https://0.0.0.0']);
+controller.api.thread_settings.get_domain_whitelist(function (err, data)  {
+    console.log('****** Whitelisted domains :', data);
+});
 
 controller.hears(['hello'],'facebook_postback', function(bot, message) {
     //...
